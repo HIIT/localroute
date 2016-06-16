@@ -56,7 +56,6 @@ function initNode() {
 	var fd;
 
 	eval("fs=require('fs');");
-	eval("sys=require('sys');");
 //	eval("Iconv=require('iconv').Iconv;");  For future Shapefile support.
 	eval("util=require('util');");
 
