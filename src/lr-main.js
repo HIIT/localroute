@@ -216,7 +216,7 @@ function initNode() {
 			var ll,sw,ne;
 			var pbf;
 
-			eval("Schema=require('protobuf').Schema;");
+			eval("ProtoBuf=require('protobufjs');");
 			eval("zlib=require('zlib');");
 			mapSet=new gis.osm.MapSet();
 			pbf=new gis.osm.PBF(mapSet);

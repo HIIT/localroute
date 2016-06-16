@@ -507,7 +507,7 @@ gis.osm.PBF.prototype.importPBF=function(path,done) {
 		var group;
 
 		if(!data) return;
-		prim=primParser.parse(data);
+		prim=primParser.decode(data);
 		txtList=[];
 		groupList=prim['primitivegroup'];
 		groupCount=groupList.length;
@@ -537,7 +537,7 @@ gis.osm.PBF.prototype.importPBF=function(path,done) {
 			hdrLen=hdrBuf.readUInt32BE(0);
 			// BlobHeader.
 			fs.readSync(fd,hdrBuf,0,hdrLen,null);
-			hdr=hdrParser.parse(hdrBuf.slice(0,hdrLen));
+			hdr=hdrParser.decode(hdrBuf.slice(0,hdrLen));
 
 			// Blob length.
 			blobLen=hdr['datasize'];
@@ -545,10 +545,11 @@ gis.osm.PBF.prototype.importPBF=function(path,done) {
 			fs.readSync(fd,blobBuf,0,blobLen,null);
 
 			if(hdr['type']=='OSMData') {
-				blob=blobParser.parse(blobBuf.slice(0,blobLen));
-				zBuf=blob['zlibData'];
+				blob=blobParser.decode(blobBuf.slice(0,blobLen));
+				zBuf=blob['zlib_data'];
+				if(zBuf && zBuf['buffer'] && zBuf['offset']) {
+					zBuf = zBuf['buffer'].slice(zBuf['offset']);
 
-				if(zBuf) {
 					zlib.inflate(zBuf,parseBlock);
 					return;
 				}
@@ -564,11 +565,11 @@ gis.osm.PBF.prototype.importPBF=function(path,done) {
 	profileSet=this.mapSet.profileSet;
 	waySet=this.mapSet.waySet;
 
-	schema=new Schema(new Buffer(gis.bin.OsmDesc,'base64'));
+	schema=ProtoBuf.loadProto(new Buffer(gis.bin.OsmDesc,'base64'));
 
-	hdrParser=/** @type {HdrParser} */ (schema['BlockHeader']);
-	blobParser=/** @type {BlobParser} */ (schema['Blob']);
-	primParser=/** @type {PrimitiveBlockParser} */ (schema['PrimitiveBlock']);
+	hdrParser=/** @type {HdrParser} */ schema.build('BlobHeader');
+	blobParser=/** @type {BlobParser} */ schema.build('Blob');
+	primParser=/** @type {PrimitiveBlockParser} */ schema.build('PrimitiveBlock');
 
 	hdrBuf=new Buffer(gis.osm.PBF.hdrMax);
 	blobBuf=new Buffer(gis.osm.PBF.blobMax);
